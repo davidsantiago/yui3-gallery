@@ -7,7 +7,7 @@
 	var 
 		//function alias'
 		getClassName = Y.ClassNameManager.getClassName,
-		createNode = Y.Node.create,
+		nodeCreate = Y.Node.create,
 		
 		//plugin info
 		NAME = 'taglist',
@@ -42,17 +42,19 @@
 		oldInput : null,
 		
 		//the container that holds the new input
-		inputContainer : createNode(TPL_INPUT_CONTAINER),
+		inputContainer : nodeCreate(TPL_INPUT_CONTAINER),
 		
 		//the new input
-		input : createNode('<input></input>'),
+		input : nodeCreate('<input>'),
 		
 		//the ul container
-		cont : createNode(TPL_ENTRY_HOLDER),
+		cont : nodeCreate(TPL_ENTRY_HOLDER),
 		
 		lis : [],
 				
 		entries : [],
+		
+		span : nodeCreate('<em></em>'),
 		
 		toString : function () {
 			return '[Object ' + NAME + ']';
@@ -60,12 +62,11 @@
 		
 		initializer : function () {
 			Y.log('initalizer', 'info', 'Y.' + NAME);
-			
 			this.oldInput = this.get('host');
 			this.entries = [];
 			this.lis = [];
 			this._selected = -1;
-			
+			//start the process
 			this.renderUI();
 			this.bindUI();
 			this.syncUI();
@@ -73,7 +74,6 @@
 		
 		destructor : function () {
 			Y.log('destructor', 'info', 'Y.' + NAME);
-			
 			this.oldInput.set('type', 'text');
 			this.input.remove();
 		},
@@ -82,7 +82,15 @@
 			Y.log('render', 'info', 'Y.' + NAME);
 			//add the input item
 			this.inputContainer.appendChild(this.input);
-			this.cont.append(this.inputContainer);
+			this.cont.appendChild(this.inputContainer);
+			this.cont.appendChild(this.span);
+			//make the styles of the span the same as the input, except hidden
+			this.span.setStyles({
+				visibility : 'hidden',
+				position : 'absolute',
+				top : '0',
+				left : '0'
+			});
 			//set the input values
 			this.oldInput.set('type', 'hidden');
 			this.input.set('value', this.oldInput.get('value'));
@@ -98,6 +106,7 @@
 			this.input.on('blur', this.add, this);
 			//if the container is clicked, focus on the firld
 			this.cont.on('click', function () {
+				this.checkWidth();
 				this.input.focus();
 			}, this);
 			//keypress listeners
@@ -106,6 +115,12 @@
 				this.keyDown,
 				this.input,
 				'down:' + [KEY_ENTER, KEY_BACKSPACE, KEY_COMMA, KEY_SPACE].join(','),
+				this
+			);
+			//keypress listeners
+			this.input.on(
+				'keyup',
+				this.checkWidth,
 				this
 			);
 		},
@@ -122,12 +137,12 @@
 			Y.log('Adding ' + k, 'info', 'Y.' + NAME);
 			var 
 				add = (this.entries.length) ? this.oldInput.get('value') + DELIM + k : k,
-				li = createNode('<li class="' + CSS_ENTRY_ITEM + '"></li>'),
-				txt = createNode(TPL_ENTRY_TEXT);
+				li = nodeCreate('<li class="' + CSS_ENTRY_ITEM + '"></li>'),
+				txt = nodeCreate(TPL_ENTRY_TEXT);
 			
 			li.appendChild(txt.set('innerHTML', k));
-			li.appendChild(createNode(TPL_ENTRY_EDIT));
-			li.appendChild(createNode(TPL_ENTRY_CLOSE));
+			li.appendChild(nodeCreate(TPL_ENTRY_EDIT));
+			li.appendChild(nodeCreate(TPL_ENTRY_CLOSE));
 				
 			this.oldInput.set('value', add);
 			this.cont.insert(li, this.inputContainer, "before");
@@ -147,17 +162,28 @@
 				}
 				this.input.set('value', '');
 			}
+			this.cont.appendChild(this.inputContainer);
+			this.input.focus();	
+			this.checkWidth();
 		},
 		
 		//get the index of a key in an array
 		_getIndex : function (a, k) {
 			var ai, al = a.length;
-			for (ai = 0; ai < al; ai += 1) {
-				if (a[ai] === k) {
-					return ai;
+			//use the indexOf method if available
+			if (Array.prototype.hasOwnProperty('indexOf')) {
+				Y.log('browser indexOf', 'info');
+				return a.indexOf(k);
+			} else {
+			//use the manual method
+				Y.log('manual indexOf', 'info');
+				for (ai = 0; ai < al; ai += 1) {
+					if (a[ai] === k) {
+						return ai;
+					}
 				}
+				return -1;
 			}
-			return -1;
 		},
 		
 		remove : function (i) {
@@ -170,6 +196,7 @@
 				this.lis.splice(i, 1); //removes that li from the array of lis
 			}
 			this.input.focus();
+			this.checkWidth();
 		},
 		
 		removeClick : function (e) {
@@ -182,8 +209,9 @@
 		edit : function (i) {
 			var k = this.entries[i];
 			if (k) {
-				this.remove(i);
+				this.cont.insert(this.inputContainer, this.lis[i], "before");
 				this.input.set('value', k);
+				this.remove(i);
 			}
 		},
 		
@@ -192,6 +220,16 @@
 			if (i > -1) {
 				this.edit(i);
 			}
+		},
+		
+		checkWidth : function () {
+			var entry = this.input.get('value');
+			Y.log('Checking width of input', 'info', 'Y.' + NAME);
+			//use the span as a dummy field
+			this.span.set('innerHTML', entry);
+			//set the width of the input based on the width of the span
+			Y.log(this.span.get('offsetWidth') + 'px', 'info');
+			this.input.setStyle('width', (this.span.get('offsetWidth') + 30) + 'px');
 		},
 		
 		keyDown : function (ev) {
