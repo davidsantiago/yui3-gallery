@@ -95,7 +95,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         //set the input values
         this.oldInput.set('type', 'hidden');
         this.input.set('value', this.oldInput.get('value'));
-        this.oldInput.get('parentNode').appendChild(this.cont);
+        this.oldInput.get('parentNode').insertBefore(this.cont, this.oldInput);
     },
 
     bindUI: function() {
