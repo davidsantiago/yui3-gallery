@@ -39,6 +39,7 @@
     display: inline-block;
     line-height: 1;
     margin-bottom: 10px;
+    background: transparent;
 }
 .yui3-taglistentry-item {
     -webkit-border-radius: 4px;
