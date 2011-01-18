@@ -104,7 +104,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         this.cont.delegate('click', this.removeClick, 'span.' + CSS_ENTRY_CLOSE, this);
         this.cont.delegate('click', this.editClick, 'span.' + CSS_ENTRY_EDIT, this);
         //the blur event will do an add check
-        this.input.on('blur', this.add, this);
+        this.input.on('blur', function () { this.add(false); }, this);
         //if the container is clicked, focus on the firld
         this.cont.on('click',
         function() {
@@ -131,7 +131,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
     syncUI: function() {
         Y.log('sync', 'info', 'Y.' + NAME);
         //do an add when we intialise as there may have been content added before the js fired
-        this.add();
+        this.add(false);
     },
 
     //the add helper method
@@ -153,7 +153,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         this.lis.push(li);
     },
 
-    add: function() {
+    add: function(refocusInput) {
         var input = this.input.get('value'),
         a,
         al,
@@ -169,7 +169,9 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
             this.input.set('value', '');
         }
         this.cont.appendChild(this.inputContainer);
-        this.input.focus();
+        if (refocusInput) {
+            this.input.focus();
+        }
         this.checkWidth();
     },
 
@@ -280,7 +282,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
             ev.halt();
             //we're going to treat these as an add
             if (entry) {
-                this.add();
+                this.add(true);
             }
         }
 
