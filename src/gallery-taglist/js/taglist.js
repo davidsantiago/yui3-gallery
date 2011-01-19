@@ -103,6 +103,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         //the delegated listeners for the edit and delete spans
         this.cont.delegate('click', this.removeClick, 'span.' + CSS_ENTRY_CLOSE, this);
         this.cont.delegate('click', this.editClick, 'span.' + CSS_ENTRY_EDIT, this);
+        this.cont.delegate('click', this.editClick, 'span.' + CSS_ENTRY_TEXT, this);
         //the blur event will do an add check
         this.input.on('blur', function () { this.add(false); }, this);
         //if the container is clicked, focus on the firld
