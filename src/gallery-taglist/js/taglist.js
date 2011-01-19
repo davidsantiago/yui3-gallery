@@ -134,6 +134,17 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         this.add(false);
     },
 
+    // Checks if ths string tag is already in one of the tags in the widget.
+    checkTagUnique: function(tag) {
+        var i;
+        for (i = 0; i < this.lis.length; i += 1) {
+            if (tag == this.lis[i].one('.' + CSS_ENTRY_TEXT).get('innerHTML')) {
+                return false;
+            }
+        }
+        return true;
+    },
+
     //the add helper method
     //this does the add
     _add: function(k) {
@@ -161,7 +172,7 @@ Y[NAME] = Y.Base.create(NAME, Y.Plugin.Base, [], {
         //first we need to clean up the inputs and remove any extra spaces
         input = input.replace(/, /g, ',');
         //is there anything to add?
-        if (input.length) {
+        if (input.length && this.checkTagUnique(input)) {
             a = input.split(',');
             for (ai = 0, al = a.length; ai < al; ai += 1) {
                 this._add(a[ai]);
